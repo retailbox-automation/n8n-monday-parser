@@ -10,7 +10,7 @@ class MondayParser {
             icon: 'file:mondayparser.svg',
             group: ['transform'],
             version: 1,
-            description: 'Парсер данных Monday.com для структурирования колонок',
+            description: 'Parse and structure Monday.com data with advanced column type handling',
             defaults: {
                 name: 'Monday Parser',
             },
@@ -18,50 +18,26 @@ class MondayParser {
             outputs: ['main'],
             properties: [
                 {
-                    displayName: 'Операция',
+                    displayName: 'Operation',
                     name: 'operation',
                     type: 'options',
                     noDataExpression: true,
                     options: [
                         {
-                            name: 'Трансформировать данные',
+                            name: 'Transform Data',
                             value: 'transform',
-                            description: 'Парсит и структурирует данные Monday.com',
-                            action: 'Трансформировать данные Monday.com',
+                            description: 'Parse and structure Monday.com data',
+                            action: 'Transform Monday.com data',
                         },
                     ],
                     default: 'transform',
                 },
                 {
-                    displayName: 'Board ID',
-                    name: 'boardId',
-                    type: 'string',
-                    default: '7992652551',
-                    description: 'ID доски Monday.com',
-                    displayOptions: {
-                        show: {
-                            operation: ['transform'],
-                        },
-                    },
-                },
-                {
-                    displayName: 'Group Title',
-                    name: 'groupTitle',
-                    type: 'string',
-                    default: 'Detected results',
-                    description: 'Название группы для обработанных элементов',
-                    displayOptions: {
-                        show: {
-                            operation: ['transform'],
-                        },
-                    },
-                },
-                {
-                    displayName: 'Email Pattern',
-                    name: 'emailPattern',
-                    type: 'string',
-                    default: 'pulse_{id}@monday.com',
-                    description: 'Шаблон email, {id} будет заменен на ID элемента',
+                    displayName: 'Input JSON',
+                    name: 'inputJson',
+                    type: 'json',
+                    default: '{}',
+                    description: 'Monday.com data to be transformed (JSON format)',
                     displayOptions: {
                         show: {
                             operation: ['transform'],
@@ -74,15 +50,21 @@ class MondayParser {
     async execute() {
         const items = this.getInputData();
         const operation = this.getNodeParameter('operation', 0);
-        const boardId = this.getNodeParameter('boardId', 0);
-        const groupTitle = this.getNodeParameter('groupTitle', 0);
-        const emailPattern = this.getNodeParameter('emailPattern', 0);
         if (operation === 'transform') {
             const returnData = [];
             for (let i = 0; i < items.length; i++) {
                 try {
-                    const item = items[i].json;
-                    const transformedData = MondayParser.transformMondayData(item, boardId, groupTitle, emailPattern);
+                    // Get JSON input from parameter
+                    let inputData;
+                    try {
+                        const jsonInput = this.getNodeParameter('inputJson', i);
+                        inputData = typeof jsonInput === 'string' ? JSON.parse(jsonInput) : jsonInput;
+                    }
+                    catch (jsonError) {
+                        // Fallback to incoming data if JSON parsing fails
+                        inputData = items[i].json;
+                    }
+                    const transformedData = MondayParser.transformMondayData(inputData);
                     returnData.push({ json: transformedData });
                 }
                 catch (error) {
@@ -100,7 +82,7 @@ class MondayParser {
             }
             return [returnData];
         }
-        throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Неподдерживаемая операция: ${operation}`);
+        throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`);
     }
     static parseColumnValue(cvValue, cvType) {
         if (!cvValue) {
@@ -108,20 +90,20 @@ class MondayParser {
         }
         try {
             let valueData;
-            // Попробуем распарсить JSON, если это строка
+            // Try to parse JSON if it's a string
             if (typeof cvValue === 'string') {
                 try {
                     valueData = JSON.parse(cvValue);
                 }
                 catch {
-                    // Если не JSON, вернем как есть для простых типов
+                    // If not JSON, return as is for simple types
                     return cvValue;
                 }
             }
             else {
                 valueData = cvValue;
             }
-            // Обработка по типам колонок
+            // Processing by column types
             switch (cvType) {
                 case 'creation_log':
                     return {
@@ -365,7 +347,7 @@ class MondayParser {
                 case 'numbers':
                     return valueData;
                 default:
-                    // Специальная обработка для color колонки
+                    // Special handling for color column
                     if (cvType === 'color' || (cvType && cvType.includes('color'))) {
                         if (typeof valueData === 'object' && valueData !== null) {
                             return {
@@ -392,15 +374,15 @@ class MondayParser {
         if (parsedValue === null) {
             return null;
         }
-        // Для простых типов возвращаем текстовое представление
+        // For simple types return text representation
         if (['text', 'numbers', 'formula', 'item_id'].includes(cvType)) {
             return cvText || parsedValue;
         }
-        // Для status возвращаем текст (label)
+        // For status return text (label)
         if (cvType === 'status') {
             return cvText;
         }
-        // Для checkbox возвращаем структуру с checked и text
+        // For checkbox return structure with checked and text
         if (cvType === 'checkbox') {
             if (typeof parsedValue === 'object' && parsedValue !== null) {
                 return {
@@ -410,9 +392,9 @@ class MondayParser {
             }
             return null;
         }
-        // Для остальных типов возвращаем полную структуру с text полем
+        // For other types return full structure with text field
         if (typeof parsedValue === 'object' && parsedValue !== null) {
-            // Добавляем text поле если его нет
+            // Add text field if it doesn't exist
             if (!parsedValue.text && cvText) {
                 parsedValue.text = cvText;
             }
@@ -420,18 +402,22 @@ class MondayParser {
         }
         return parsedValue;
     }
-    static transformMondayData(item, boardId, groupTitle, emailPattern = 'pulse_{id}@monday.com') {
+    static transformMondayData(item) {
+        var _a, _b, _c;
+        const defaultBoardId = '1234567890';
+        const defaultGroupTitle = 'Parsed Items';
+        const defaultEmailPattern = 'item_{id}@monday.com';
         const transformed = {
             id: item.id,
             name: item.name,
             created_at: item.created_at,
             state: item.state,
-            email: emailPattern.replace('{id}', item.id),
+            email: defaultEmailPattern.replace('{id}', item.id || 'unknown'),
             updated_at: new Date().toISOString(),
-            board: { id: boardId },
+            board: { id: ((_a = item.board) === null || _a === void 0 ? void 0 : _a.id) || defaultBoardId },
             group: {
-                id: 'topics',
-                title: groupTitle,
+                id: ((_b = item.group) === null || _b === void 0 ? void 0 : _b.id) || 'topics',
+                title: ((_c = item.group) === null || _c === void 0 ? void 0 : _c.title) || defaultGroupTitle,
                 deleted: false,
                 archived: false,
             },
@@ -442,9 +428,9 @@ class MondayParser {
             column_values: [],
             mappable_column_values: {},
         };
-        // Получаем column_values
+        // Get column_values
         const columnValues = item.column_values || [];
-        // Ищем creator_id из creation_log
+        // Find creator_id from creation_log
         const creationLog = columnValues.find((cv) => cv.type === 'creation_log');
         if (creationLog && creationLog.value) {
             const parsedCreation = MondayParser.parseColumnValue(creationLog.value, 'creation_log');
@@ -452,7 +438,7 @@ class MondayParser {
                 transformed.creator_id = parsedCreation.creator_id;
             }
         }
-        // Обрабатываем column_values
+        // Process column_values
         const transformedColumnValues = [];
         const mappableColumnValues = {};
         for (const cv of columnValues) {
@@ -462,7 +448,7 @@ class MondayParser {
             const cvType = cv.type;
             const cvColumn = cv.column || {};
             const cvTitle = cvColumn.title || '';
-            // Базовая структура для transformed_column_values
+            // Basic structure for transformed_column_values
             const newCv = {
                 id: cvId,
                 value: cvValue,
@@ -470,9 +456,9 @@ class MondayParser {
                 title: cvTitle,
                 additional_info: undefined,
             };
-            // Парсим значение колонки
+            // Parse column value
             const parsedValue = MondayParser.parseColumnValue(cvValue, cvType);
-            // Добавляем additional_info для определенных типов
+            // Add additional_info for certain types
             if (cvType === 'status' && parsedValue && typeof parsedValue === 'object') {
                 const additionalInfo = {
                     label: cvText || parsedValue.label,
@@ -482,7 +468,7 @@ class MondayParser {
                 newCv.additional_info = JSON.stringify(additionalInfo);
             }
             else if (cvType === 'numbers') {
-                // Пытаемся получить unit из settings
+                // Try to get unit from settings
                 try {
                     const settings = JSON.parse(cvColumn.settings_str || '{}');
                     if (settings.unit) {
@@ -490,11 +476,11 @@ class MondayParser {
                     }
                 }
                 catch {
-                    // Игнорируем ошибки парсинга
+                    // Ignore parsing errors
                 }
             }
             else if (cvId.startsWith('color_') && parsedValue && typeof parsedValue === 'object') {
-                // Специальная обработка для color колонок
+                // Special handling for color columns
                 const additionalInfo = {
                     label: cvText || parsedValue.label,
                     color: parsedValue.color || '#00c875',
@@ -503,7 +489,7 @@ class MondayParser {
                 newCv.additional_info = JSON.stringify(additionalInfo);
             }
             transformedColumnValues.push(newCv);
-            // Создаем mappable_column_values
+            // Create mappable_column_values
             const mappableValue = MondayParser.getMappableValue(cv, parsedValue);
             mappableColumnValues[cvId] = mappableValue;
         }
