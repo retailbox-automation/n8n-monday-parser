@@ -89,7 +89,7 @@ itemIndex: i,
 return [returnData];
 }
 
-throw new NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`);
+throw new NodeOperationError(this.getNode(), Unsupported operation: );
 }
 
 public static parseColumnValue(cvValue: any, cvType: string): any {
@@ -402,7 +402,7 @@ return null;
 return valueData;
 }
 } catch (error) {
-console.error(`Error parsing column value of type ${cvType}:`, error);
+console.error(Error parsing column value of type :, error);
 return null;
 }
 }
@@ -448,21 +448,17 @@ return parsedValue;
 }
 
 public static transformMondayData(item: any): any {
-const defaultBoardId = '1234567890';
-const defaultGroupTitle = 'Parsed Items';
-const defaultEmailPattern = 'item_{id}@monday.com';
-
 const transformed = {
 id: item.id,
 name: item.name,
 created_at: item.created_at,
 state: item.state,
-email: defaultEmailPattern.replace('{id}', item.id || 'unknown'),
+email: item.email || null,
 updated_at: new Date().toISOString(),
-board: { id: item.board?.id || defaultBoardId },
+board: { id: item.board?.id || null },
 group: {
-id: item.group?.id || 'topics',
-title: item.group?.title || defaultGroupTitle,
+id: item.group?.id || null,
+title: item.group?.title || null,
 deleted: false,
 archived: false,
 },

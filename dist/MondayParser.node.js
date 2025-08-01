@@ -82,7 +82,7 @@ class MondayParser {
             }
             return [returnData];
         }
-        throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`);
+        throw new n8n_workflow_1.NodeOperationError(this.getNode(), Unsupported, operation);
     }
     static parseColumnValue(cvValue, cvType) {
         if (!cvValue) {
@@ -364,7 +364,7 @@ class MondayParser {
             }
         }
         catch (error) {
-            console.error(`Error parsing column value of type ${cvType}:`, error);
+            console.error(Error, parsing, column, value, of, type, error);
             return null;
         }
     }
@@ -404,20 +404,17 @@ class MondayParser {
     }
     static transformMondayData(item) {
         var _a, _b, _c;
-        const defaultBoardId = '1234567890';
-        const defaultGroupTitle = 'Parsed Items';
-        const defaultEmailPattern = 'item_{id}@monday.com';
         const transformed = {
             id: item.id,
             name: item.name,
             created_at: item.created_at,
             state: item.state,
-            email: defaultEmailPattern.replace('{id}', item.id || 'unknown'),
+            email: item.email || null,
             updated_at: new Date().toISOString(),
-            board: { id: ((_a = item.board) === null || _a === void 0 ? void 0 : _a.id) || defaultBoardId },
+            board: { id: ((_a = item.board) === null || _a === void 0 ? void 0 : _a.id) || null },
             group: {
-                id: ((_b = item.group) === null || _b === void 0 ? void 0 : _b.id) || 'topics',
-                title: ((_c = item.group) === null || _c === void 0 ? void 0 : _c.title) || defaultGroupTitle,
+                id: ((_b = item.group) === null || _b === void 0 ? void 0 : _b.id) || null,
+                title: ((_c = item.group) === null || _c === void 0 ? void 0 : _c.title) || null,
                 deleted: false,
                 archived: false,
             },
