@@ -82,7 +82,7 @@ class MondayParser {
             }
             return [returnData];
         }
-        throw new n8n_workflow_1.NodeOperationError(this.getNode(), Unsupported, operation);
+        throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`);
     }
     static parseColumnValue(cvValue, cvType) {
         if (!cvValue) {
@@ -364,7 +364,7 @@ class MondayParser {
             }
         }
         catch (error) {
-            console.error(Error, parsing, column, value, of, type, error);
+            console.error(`Error parsing column value of type ${cvType}:`, error);
             return null;
         }
     }

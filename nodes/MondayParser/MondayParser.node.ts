@@ -89,7 +89,7 @@ itemIndex: i,
 return [returnData];
 }
 
-throw new NodeOperationError(this.getNode(), Unsupported operation: );
+		throw new NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`);
 }
 
 public static parseColumnValue(cvValue: any, cvType: string): any {
@@ -402,7 +402,7 @@ return null;
 return valueData;
 }
 } catch (error) {
-console.error(Error parsing column value of type :, error);
+		console.error(`Error parsing column value of type ${cvType}:`, error);
 return null;
 }
 }
