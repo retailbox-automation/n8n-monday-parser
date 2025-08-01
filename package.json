@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-monday-parser",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Custom n8n node for parsing and structuring Monday.com data with advanced column type handling",
   "license": "MIT",
   "homepage": "https://github.com/retailbox-automation/n8n-monday-parser",
