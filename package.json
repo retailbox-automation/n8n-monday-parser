@@ -1,18 +1,18 @@
-{
+﻿{
   "name": "n8n-nodes-monday-parser",
   "version": "1.0.0",
   "description": "Кастомная нода n8n для парсинга данных Monday.com",
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/retailbox-automation/n8n-monday-parser",
   "author": {
-    "name": "",
+    "name": "Retailbox Automation",
     "email": ""
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/retailbox-automation/n8n-monday-parser.git"
   },
-  "main": "dist/nodes/MondayParser/MondayParser.node.js",
+  "main": "dist/MondayParser.node.js",
   "scripts": {
     "build": "tsc && node scripts/copy-icons.js",
     "dev": "tsc --watch",
@@ -22,7 +22,9 @@
     "prepublishOnly": "npm run build && npm run lint -s"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "INSTALL.md"
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,
@@ -50,4 +52,4 @@
     "parser",
     "data-transformation"
   ]
-} 
+}
