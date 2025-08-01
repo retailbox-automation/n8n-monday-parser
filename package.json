@@ -1,12 +1,12 @@
 ﻿{
   "name": "n8n-nodes-monday-parser",
-  "version": "1.0.0",
-  "description": "Кастомная нода n8n для парсинга данных Monday.com",
+  "version": "1.0.1",
+  "description": "Custom n8n node for parsing Monday.com data",
   "license": "MIT",
   "homepage": "https://github.com/retailbox-automation/n8n-monday-parser",
   "author": {
     "name": "Retailbox Automation",
-    "email": ""
+    "email": "retailbox7@gmail.com"
   },
   "repository": {
     "type": "git",
@@ -17,9 +17,9 @@
     "build": "tsc && node scripts/copy-icons.js",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
-    "lint": "eslint . --ext .js --ignore-path .gitignore",
-    "lintfix": "eslint . --ext .js --ignore-path .gitignore --fix",
-    "prepublishOnly": "npm run build && npm run lint -s"
+    "lint": "eslint nodes scripts --ext .js,.ts",
+    "lintfix": "eslint nodes scripts --ext .js,.ts --fix",
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist",
